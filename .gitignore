@@ -1,0 +1,14 @@
+# Data
+/data
+
+# Pytest cache
+.pytest_cache
+
+# Egg info
+**/*.egg-info
+
+# Pycache
+**/__pycache__
+
+# Mypy
+**/.mypy_cache
