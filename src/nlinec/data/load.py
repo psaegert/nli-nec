@@ -3,11 +3,12 @@ import os
 import shutil
 
 import pandas as pd
+import numpy as np
 import urllib3
 from tqdm import tqdm
 
 from ..utils import get_data_dir
-from .preprocessing import get_type, stringify_context
+from .preprocessing import get_type, stringify_context, get_granularity
 
 
 def download_data(target_dir: str = None) -> None:
@@ -70,7 +71,7 @@ def load_data(filename: str, explode: bool = False) -> pd.DataFrame:
     instances = []
     with open(os.path.join(get_data_dir(), filename), 'r') as f:
         # Read each line of the file
-        for line in tqdm(f):
+        for line in tqdm(f, desc=f'Loading {filename}'):
             # Convert the line into a dictionary and append the dictionary to the list
             instances.append(json.loads(line))
 
@@ -100,6 +101,9 @@ def load_data(filename: str, explode: bool = False) -> pd.DataFrame:
     # Reset the index
     df.reset_index(drop=True, inplace=True)
 
+    # Calculate the granularity of the type
+    df['granularity'] = df['full_type'].apply(get_granularity)
+
     return df
 
 
@@ -125,7 +129,7 @@ def get_all_types(granularity: int = -1) -> pd.DataFrame:
         all_types = pd.read_csv(all_types_path)
     else:
         # If the file doesn't exist, take the types from the training data and save them
-        train_data = load_data('g_train.json')
+        train_data = load_data('augmented_train.json', explode=True)
         all_types = pd.DataFrame(train_data['full_type'].unique(), columns=['full_type'])
 
         # Save the types to a file
@@ -135,3 +139,134 @@ def get_all_types(granularity: int = -1) -> pd.DataFrame:
     all_types['type'] = all_types['full_type'].apply(lambda x: get_type(x, granularity=granularity))
 
     return all_types
+
+
+def get_ambiguity_index(filename: str = 'augmented_train.json') -> dict:
+    """
+    Get the ambiguity index (a dictionary that maps each entity to a dictionary of types and their counts).
+
+    Parameters
+    ----------
+    filename : str, optional
+        The name of the json file, by default 'augmented_train.json'
+
+    Returns
+    -------
+    ambiguity_index : dict
+        The ambiguity index.
+    """
+
+    index_file = os.path.join(get_data_dir(), 'derived', f'ambiguity_index_{os.path.splitext(filename)[0]}.json')
+
+    if os.path.exists(index_file):
+        with open(index_file, 'r') as f:
+            ambiguity_index = json.load(f)
+    else:
+        # Load the training data
+        data = load_data('augmented_train.json', explode=True)
+
+        # Find the most ambiguous entities
+        ambiguity_index = {}
+        for i, row in tqdm(data.iterrows(), total=len(data), desc='Building the ambiguity index'):
+            # If the entity is not in the index, add an empty dict for its types
+            if row['mention_span'] not in ambiguity_index:
+                ambiguity_index[row['mention_span']] = {}
+
+            # If the entity type is not in the index, add an empty count
+            if row['full_type'] not in ambiguity_index[row['mention_span']]:
+                ambiguity_index[row['mention_span']][row['full_type']] = 0
+
+            # Increment the count
+            ambiguity_index[row['mention_span']][row['full_type']] += 1
+
+        # Find the most ambiguous entities, i.e. the ones with the most types
+        ambiguity_index = {k: v for k, v in sorted(ambiguity_index.items(), key=lambda item: len(item[1]), reverse=True)}
+
+        with open(index_file, 'w') as f:
+            json.dump(ambiguity_index, f, indent=4)
+
+    return pd.DataFrame(ambiguity_index).T.fillna(0)
+
+
+def get_negative_type_candidates(entity: str, ambiguity_index: pd.DataFrame, granularity: int, size: int = None) -> list | None:
+    """
+    Get the negative type candidates for the specified entity at the specified granularity.
+
+    Parameters
+    ----------
+    entity : str
+        The entity.
+    ambiguity_index : pd.DataFrame
+        The ambiguity index.
+    granularity : int
+        The granularity to sample the negative type candidates at.
+    size : int, optional
+        The number of negative type candidates to sample, by default None (return all the negative type candidates)
+
+    Returns
+    -------
+    negative_type_candidates : list
+        The negative type candidates.
+    """
+    try:
+        # Get the types at the specified granularity
+        negative_type_candidates = ambiguity_index.drop(columns=[t for t in ambiguity_index.columns if not get_granularity(t) == granularity]).loc[entity]
+
+        # Remove the entities with count > 0
+        negative_type_candidates = negative_type_candidates[negative_type_candidates == 0].index.tolist()
+
+        if len(negative_type_candidates) == 0:
+            return None
+
+        if size is not None:
+            return np.random.choice(negative_type_candidates, size=size, replace=False).tolist()[0]
+
+        return negative_type_candidates
+    except KeyError:
+        return None
+
+
+def get_negative_data(positive_file: str = 'augmented_train.json', random_state: int = None, step: int = 1000) -> pd.DataFrame:
+    """
+    Sample negative data based on a file full of positive NEC data and store it in a json file.
+
+    Parameters
+    ----------
+    filename : str, optional
+        The name of the positive json file, by default 'augmented_train.json'
+    random_state : int, optional
+        The random state, by default None
+    step : int, optional
+        The step size for sampling and logging, by default 1000
+
+    Returns
+    -------
+    negative_data : pd.DataFrame
+        A DataFrame containing the negative data in the 'full_type' column. May contain NaN values in case no negative type candidates were found.
+    """
+
+    random_state_suffix = f'_{random_state}' if random_state is not None else ''
+    negative_file = os.path.join(get_data_dir(), 'derived', 'negative_data', f'{positive_file}{random_state_suffix}.csv')
+    os.makedirs(os.path.dirname(negative_file), exist_ok=True)
+
+    if os.path.exists(negative_file):
+        print(f'Loading negative data from {negative_file}...')
+        return pd.read_csv(negative_file)
+    else:
+        print(f'Generating negative data from {positive_file}...')
+        data = load_data(positive_file, explode=True)
+        ambiguity_index = get_ambiguity_index(positive_file)
+
+        if random_state is not None:
+            np.random.seed(random_state)
+
+        negative_data = data.copy()
+        pbar = tqdm(range(0, len(negative_data), step), total=len(negative_data), desc='Sampling negative data')
+        for i in range(0, len(negative_data), step):
+            negative_data.loc[i:i + step, 'full_type'] = negative_data.loc[i:i + step, ['mention_span', 'granularity']].apply(lambda x: get_negative_type_candidates(x['mention_span'], ambiguity_index, x['granularity'], size=1), axis=1)
+            pbar.update(step)
+
+        print(f'Storing negative data in {negative_file}...')
+        negative_data.to_csv(negative_file, index=False)
+
+        return negative_data

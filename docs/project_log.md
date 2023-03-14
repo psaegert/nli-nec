@@ -84,7 +84,7 @@ Merge PR #6.
 <br>
 Discuss utility functions.
 Create plan for the granularity experiment.
-Formulate and distribute jobs (Fine-Tuning: Sam, Prediction: Paul, Evaluation: T).
+Formulate and distribute jobs (Fine-Tuning: S, Prediction: Paul, Evaluation: T).
 Agree on interfaces for the jobs to facilitate parallel work.
 The fine-tuning job produces a model, the prediction job produces a table with entailment probabilities for each type for each sentence.
 
@@ -112,3 +112,23 @@ Investigate target type distribution, entity distribution and target type distri
 *Paul*
 <br>
 Identify and count the frequency of the most often misclassified entities in the `multi_nli` dataset.
+
+---
+
+#### 2023-03-12
+*Paul, S, T*
+<br>
+Discuss progress on the tasks.
+
+---
+
+#### 2023-03-14
+*Paul*
+<br>
+Migrate Project to new Repository.
+Merge Prediction Routine (PR #6).
+Add Issues #2, #3, #5 to backlog.
+Reduce the project scope and create a [diagram](assets/project_plan_2023-03-14.png) for the project structure, highlighting the status of the tasks.
+Plan tasks and create Milestones for setting up and testing the routines, using them for the first fine-tuning, and performing a sanity check until 2023-03-19.
+Create, test and run routine for sampling negative data for the fine-tuning.
+Add tests for preprocessing.
