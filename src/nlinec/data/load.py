@@ -25,6 +25,8 @@ def download_data(target_dir: str = None) -> None:
     if target_dir is None:
         target_dir = get_data_dir()
 
+    print(f'Downloading the data from {DATA_URL} to {target_dir}...')
+
     # Create the data directory if it does not exist
     os.makedirs(target_dir, exist_ok=True)
 
@@ -34,6 +36,7 @@ def download_data(target_dir: str = None) -> None:
         shutil.copyfileobj(r, out_file)
 
     # Extract the data
+    print('Extracting the data...')
     shutil.unpack_archive('data/ultrafine_acl18.tar.gz', 'data')
 
     # Remove the tar.gz file
@@ -74,7 +77,7 @@ def load_data(filename: str, explode: bool = False) -> pd.DataFrame:
     # Convert the list of dictionaries into a DataFrame
     df = pd.DataFrame(instances)
 
-    # Drop the 'annot_id', 'y_type_str', 'y', and 'y_type', 'original_y_str columns
+    # Drop the 'annot_id', 'y_type_str', 'y', 'y_type', and 'original_y_str' columns
     df.drop(['annot_id', 'y_type_str', 'y', 'y_type', 'original_y_str'], axis=1, inplace=True, errors='ignore')
 
     # Convert the 'left_context_token' and 'right_context_token' columns into a string
@@ -114,7 +117,8 @@ def get_all_types(granularity: int = -1) -> pd.DataFrame:
     all_types : pd.DataFrame
         A DataFrame containing all the full types and the types at the specified granularity.
     """
-    all_types_path = get_data_dir('derived', 'all_types.csv')
+    all_types_path = os.path.join(get_data_dir(), 'derived', 'all_types.csv')
+    os.makedirs(os.path.dirname(all_types_path), exist_ok=True)
 
     if os.path.exists(all_types_path):
         # If the file exists, load the types from the file
