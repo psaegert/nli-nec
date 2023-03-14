@@ -91,7 +91,7 @@ def construct_hypothesis(entity: str, type: str) -> str:
     return f'{entity} is a {type}.'
 
 
-def combine_premise_hypothesis(premise: str, hypothesis: str) -> str:
+def combine_premise_hypothesis(premise: str, hypothesis: str, hypothesis_only: bool = False) -> str:
     """
     Combine the premise and hypothesis into a single string.
 
@@ -101,10 +101,17 @@ def combine_premise_hypothesis(premise: str, hypothesis: str) -> str:
         The premise.
     hypothesis : str
         The hypothesis.
+    hypothesis_only : bool, optional
+        Whether to only include the hypothesis in the combined string, by default False
 
     Returns
     -------
     combined : str
         The combined premise and hypothesis.
     """
+    # If hypothesis_only is True, return the hypothesis
+    # No additional special tokens are needed
+    if hypothesis_only:
+        return hypothesis
+
     return f'{premise}</s><s>{hypothesis}'
