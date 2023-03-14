@@ -42,7 +42,7 @@ def predict_heads(model: transformers.PreTrainedModel, tokenizer: transformers.P
     return torch_softmax(outputs[0], dim=1).detach().cpu().numpy()
 
 
-def predict_probabilities(model: transformers.PreTrainedModel, tokenizer: transformers.PreTrainedTokenizer, sentence: str | list[str], entity: str | list[str], types: list[str], normalize: str | None = None, verbose: bool = False) -> np.ndarray:
+def predict_probabilities(model: transformers.PreTrainedModel, tokenizer: transformers.PreTrainedTokenizer, sentence: str | list[str], entity: str | list[str], types: list[str], normalize: str | None = None, hypothesis_only: bool = False, verbose: bool = False) -> np.ndarray:
     """
     Predicts the type of the entity in the sentence.
 
@@ -60,6 +60,8 @@ def predict_probabilities(model: transformers.PreTrainedModel, tokenizer: transf
         A list of possible types to choose from.
     normalize : str | None , optional
         The normalization method to use to generate a probability distribution along the type axis. Can be 'mean', 'softmax', or None. If None, no normalization is performed.
+    hypothesis_only : bool, optional
+        Whether to only use the hypothesis (i.e. '<entity> is a <type>') in the prediction.
     verbose : bool, optional
         Display a progress bar.
 
@@ -102,7 +104,7 @@ def predict_probabilities(model: transformers.PreTrainedModel, tokenizer: transf
         outputs[i] = predict_heads(
             model=model,
             tokenizer=tokenizer,
-            input_text=[combine_premise_hypothesis(premise=s, hypothesis=construct_hypothesis(entity=e, type=t)) for t in types]
+            input_text=[combine_premise_hypothesis(premise=s, hypothesis=construct_hypothesis(entity=e, type=t), hypothesis_only=hypothesis_only) for t in types]
         )
         pbar.update(1)
 

@@ -77,7 +77,7 @@ def load_data(filename: str, explode: bool = False) -> pd.DataFrame:
     # Convert the list of dictionaries into a DataFrame
     df = pd.DataFrame(instances)
 
-    # Drop the 'annot_id', 'y_type_str', 'y', 'original_y_str' and 'y_type' columns
+    # Drop the 'annot_id', 'y_type_str', 'y', 'y_type', and 'original_y_str' columns
     df.drop(['annot_id', 'y_type_str', 'y', 'y_type', 'original_y_str'], axis=1, inplace=True, errors='ignore')
 
     # Convert the 'left_context_token' and 'right_context_token' columns into a string
