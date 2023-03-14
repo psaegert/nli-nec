@@ -2,13 +2,13 @@ import json
 import os
 import shutil
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 import urllib3
 from tqdm import tqdm
 
 from ..utils import get_data_dir
-from .preprocessing import get_type, stringify_context, get_granularity
+from .preprocessing import get_granularity, get_type, stringify_context
 
 
 def download_data(target_dir: str = None) -> None:

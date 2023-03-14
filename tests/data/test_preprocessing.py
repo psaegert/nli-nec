@@ -1,4 +1,4 @@
-from nlinec.data.preprocessing import stringify_context, get_granularity, get_type, construct_hypothesis, combine_premise_hypothesis
+from nlinec.data.preprocessing import combine_premise_hypothesis, construct_hypothesis, get_granularity, get_type, stringify_context
 
 
 def test_stringify_context() -> None:
