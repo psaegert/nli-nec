@@ -132,3 +132,14 @@ Reduce the project scope and create a [diagram](assets/project_plan_2023-03-14.p
 Plan tasks and create Milestones for setting up and testing the routines, using them for the first fine-tuning, and performing a sanity check until 2023-03-19.
 Create, test and run routine for sampling negative data for the fine-tuning.
 Add tests for preprocessing.
+
+---
+
+#### 2023-03-15
+*Paul*
+<br>
+Implement routine for combining positive and negative data.
+Implement routine for calculating the accuracy at each granularity and probability band.
+Implement routine for comparing the entailment probability of the predicted type with the probability of hypernyms of the predicted type.
+Revise Hypothesis-Only bias analysis and compare the accuracy of the hypothesis-only predictions for each entity with its frequency in the mnli dataset.
+Update the [diagram](assets/project_plan_2023-03-15.png) to reflect the current status of the tasks and add a card for the interpretation with ferret.

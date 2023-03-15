@@ -41,7 +41,7 @@ def get_granularity(type: str) -> int:
     return type.count('/')
 
 
-def get_type(type: str, granularity: int = -1) -> str | None:
+def get_type(type_: str, granularity: int = -1, include_path: bool = False) -> str | None:
     """
     Get the type of the mention at the specified granularity.
 
@@ -51,6 +51,8 @@ def get_type(type: str, granularity: int = -1) -> str | None:
         The type of the mention.
     granularity : int, optional
         The granularity of the type, measured from the root of the ontology, by default -1 (finest granularity)
+    include_path : bool, optional
+        Whether to include the full hierarchy up to the specified granularity, by default False
 
     Returns
     -------
@@ -58,10 +60,12 @@ def get_type(type: str, granularity: int = -1) -> str | None:
         The type of the mention at the specified granularity.
     """
     # Split the type into a list
-    type_hierarchy = type.split('/')
+    type_hierarchy = type_.split('/')
 
     # If the granularity is -1, return the finest granularity
     if granularity == -1:
+        if include_path:
+            return type_
         return type_hierarchy[-1]
 
     # Otherwise, return the type at the specified granularity
@@ -69,6 +73,8 @@ def get_type(type: str, granularity: int = -1) -> str | None:
     if granularity >= len(type_hierarchy):
         return None
     else:
+        if include_path:
+            return '/'.join(type_hierarchy[:granularity + 1])
         return type_hierarchy[granularity]
 
 
