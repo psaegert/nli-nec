@@ -7,7 +7,7 @@ import pandas as pd
 import urllib3
 from tqdm import tqdm
 
-from ..utils import get_data_dir
+from ..utils import get_data_dir, get_labels
 from .preprocessing import get_granularity, get_type, stringify_context
 
 
@@ -51,7 +51,7 @@ def download_data(target_dir: str = None) -> None:
     shutil.rmtree('data/release')
 
 
-def load_data(filename: str, explode: bool = False) -> pd.DataFrame:
+def get_positive_data(filename: str, explode: bool = False) -> pd.DataFrame:
     """
     Load the data from the json file.
 
@@ -104,6 +104,10 @@ def load_data(filename: str, explode: bool = False) -> pd.DataFrame:
     # Calculate the granularity of the type
     df['granularity'] = df['full_type'].apply(get_granularity)
 
+    # Add the 'label' column
+    labels = get_labels()
+    df['label'] = labels['ENTAILMENT']
+
     return df
 
 
@@ -129,7 +133,7 @@ def get_all_types(granularity: int = -1) -> pd.DataFrame:
         all_types = pd.read_csv(all_types_path)
     else:
         # If the file doesn't exist, take the types from the training data and save them
-        train_data = load_data('augmented_train.json', explode=True)
+        train_data = get_positive_data('augmented_train.json', explode=True)
         all_types = pd.DataFrame(train_data['full_type'].unique(), columns=['full_type'])
 
         # Save the types to a file
@@ -163,7 +167,7 @@ def get_ambiguity_index(filename: str = 'augmented_train.json') -> dict:
             ambiguity_index = json.load(f)
     else:
         # Load the training data
-        data = load_data('augmented_train.json', explode=True)
+        data = get_positive_data('augmented_train.json', explode=True)
 
         # Find the most ambiguous entities
         ambiguity_index = {}
@@ -251,10 +255,10 @@ def get_negative_data(positive_file: str = 'augmented_train.json', random_state:
 
     if os.path.exists(negative_file):
         print(f'Loading negative data from {negative_file}...')
-        return pd.read_csv(negative_file)
+        negative_data = pd.read_csv(negative_file)
     else:
         print(f'Generating negative data from {positive_file}...')
-        data = load_data(positive_file, explode=True)
+        data = get_positive_data(positive_file, explode=True)
         ambiguity_index = get_ambiguity_index(positive_file)
 
         if random_state is not None:
@@ -269,4 +273,49 @@ def get_negative_data(positive_file: str = 'augmented_train.json', random_state:
         print(f'Storing negative data in {negative_file}...')
         negative_data.to_csv(negative_file, index=False)
 
-        return negative_data
+    # Add the 'label' column
+    labels = get_labels()
+    negative_data['label'] = labels['NEUTRAL']
+
+    return negative_data
+
+
+def combine_positive_negative_data(positive_data: pd.DataFrame, negative_data: pd.DataFrame, frac: float = 0.5, random_state: int = None) -> pd.DataFrame:
+    """
+    Combine the positive and negative data by randomly replacing a fraction of the positive data with negative data or adding it to the positive data.
+
+    Parameters
+    ----------
+    positive_data : pd.DataFrame
+        The positive data (entailment).
+    negative_data : pd.DataFrame
+        The negative data (not entailment = neutral).
+    frac : float, optional
+        The fraction of the positive data that should be replaced with negative data, by default 0.5. If < 0, the negative data is added to the positive data.
+    random_state : int, optional
+        The random state for the random number generator, by default None
+
+    Returns
+    -------
+    combined_data : pd.DataFrame
+        The combined data.
+    """
+    if frac > 1:
+        raise ValueError(f'frac must be <= 1, but is {frac}')
+
+    if frac < 0:
+        return pd.concat([positive_data, negative_data], ignore_index=True)
+
+    # Mask for the negative data that has a full_type
+    negative_type_available = negative_data['full_type'].notna()
+
+    # Deterministic, random mask for the replacement of the positive data
+    if random_state is not None:
+        np.random.seed(random_state)
+    random_mask = np.random.choice([True, False], size=len(positive_data), p=[frac, frac])
+
+    # Replace the positive data with the negative data
+    combined_data = positive_data.copy()
+    combined_data.loc[random_mask & negative_type_available, ['full_type', 'label']] = negative_data.loc[random_mask & negative_type_available, ['full_type', 'label']].values
+
+    return combined_data

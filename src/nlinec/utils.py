@@ -50,3 +50,30 @@ def get_results_dir() -> str:
     os.makedirs(results_dir, exist_ok=True)
 
     return results_dir
+
+
+def get_labels() -> dict:
+    """
+    Get the labels for the NLI tasks.
+
+    Returns
+    -------
+    labels : dict
+        The labels for the NLI tasks.
+    """
+    labels_path = os.path.join(get_data_dir(), 'labels.json')
+
+    if os.path.exists(labels_path):
+        import json
+        with open(labels_path, 'r') as f:
+            labels = json.load(f)
+    else:
+        from transformers import AutoModelForSequenceClassification
+        model = AutoModelForSequenceClassification.from_pretrained("roberta-large-mnli")
+        labels = model.config.label2id
+
+        with open(labels_path, 'w') as f:
+            import json
+            json.dump(labels, f)
+
+    return labels
