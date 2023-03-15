@@ -102,7 +102,8 @@ def get_positive_data(filename: str, explode: bool = False) -> pd.DataFrame:
     df.reset_index(drop=True, inplace=True)
 
     # Calculate the granularity of the type
-    df['granularity'] = df['full_type'].apply(get_granularity)
+    if explode:
+        df['granularity'] = df['full_type'].apply(get_granularity)
 
     # Add the 'label' column
     labels = get_labels()

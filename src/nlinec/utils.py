@@ -77,3 +77,26 @@ def get_labels() -> dict:
             json.dump(labels, f)
 
     return labels
+
+
+def color_palette(key: str | None = None) -> str | dict:
+    """
+    Get the color palette.
+
+    Returns
+    -------
+    colors : dict
+        The color palette.
+    """
+    colors = {
+        "dark": "#232526",
+        "medium": "#394a59",
+        "light": "#aed8f2",
+        "bright": "#f2f2f2",
+        "accent": "#f29727"
+    }
+
+    if key is None:
+        return colors
+
+    return colors[key]
