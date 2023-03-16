@@ -15,3 +15,6 @@
 
 # Results files for the training predictions
 results/**/*train*.csv
+
+# Models
+models/
