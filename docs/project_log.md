@@ -143,3 +143,12 @@ Implement routine for calculating the accuracy at each granularity and probabili
 Implement routine for comparing the entailment probability of the predicted type with the probability of hypernyms of the predicted type.
 Revise Hypothesis-Only bias analysis and compare the accuracy of the hypothesis-only predictions for each entity with its frequency in the mnli dataset.
 Update the [diagram](assets/project_plan_2023-03-15.png) to reflect the current status of the tasks and add a card for the interpretation with ferret.
+
+---
+2023-03-16
+*Paul*
+<br>
+Train the `nlinec-positive-2` model on only the positive data and medium granularity.
+Begin training the `nlinec-2` model on the combined data and medium granularity.
+Discover increasing training loss and poor quality predictions, and stop the training early.
+Reformulate plan to monitor the training loss and nec accuracy in frequent intervals during training.
