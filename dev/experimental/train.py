@@ -86,6 +86,16 @@ class AccuracyCallback(TrainerCallback):
             # Save the accuracy
             self.accuracy[state.global_step] = accuracy
 
+            # Save the accuracy
+            print('Saving the accuracy')
+            with open(os.path.join(OUTPUT_DIR, "accuracy.json"), "w") as f:
+                json.dump(self.accuracy, f)
+
+            # Save the loss
+            print('Saving the loss')
+            with open(os.path.join(OUTPUT_DIR, "loss.json"), "w") as f:
+                json.dump(state.log_history, f)
+
 
 # Shuffle the data
 data = data.sample(frac=1, random_state=42).reset_index(drop=True)
@@ -131,15 +141,7 @@ try:
     # Train the model
     trainer.train()
 except KeyboardInterrupt:
-    # Save the accuracy
-    print('Saving the accuracy')
-    with open(os.path.join(OUTPUT_DIR, "accuracy.json"), "w") as f:
-        json.dump(accuracy_callback.accuracy, f)
-
-    # Save the loss
-    print('Saving the loss')
-    with open(os.path.join(OUTPUT_DIR, "loss.json"), "w") as f:
-        json.dump(trainer.state.log_history, f)
+    pass
 
 # Save the model
 trainer.save_model(OUTPUT_DIR)
