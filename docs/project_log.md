@@ -173,4 +173,7 @@ Notice plateau in performance after 10% of the training and plan lowering the le
 <br>
 Further reduce the learning rate and train the `nlinec-C-2` model while logging the training loss and dev accuracy over time.
 Create [diagram](assets/model-tree-rationalepng.png) to explain the rationale behind model variants and the development process.
-
+Integrate train routine into package and make it accessible via the command line with key parameters.
+Train `nlinec-D-2` model on 10% of the data.
+Predict dev and test predictions with `nlinec-C-2` and `nlinec-D-2`, and validate the models.
+Add insights to the [diagram](assets/model-tree-rationalepng.png).
