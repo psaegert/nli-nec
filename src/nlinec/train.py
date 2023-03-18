@@ -88,7 +88,7 @@ class AccuracyCallback(TrainerCallback):
                 json.dump(state.log_history, f)
 
 
-def train(model_name: str, granularity: int, device: str | None = None, negative_frac: float = 0.5, random_state: int | None = None) -> None:
+def train(model_name: str, granularity: int, device: str | None = None, negative_frac: float = 0.5, random_state: int | None = None, train_frac: float = 1) -> None:
     """
     Train the `roberta-large-mnli` model on the augmented ontonotes NEC dataset and save the model and its logs.
 
@@ -100,10 +100,12 @@ def train(model_name: str, granularity: int, device: str | None = None, negative
         The granularity of the types to train on.
     device: str, {"cuda", "cpu"}
         The device to train on.
-    negative_frac: float
-        The fraction of negative data to use.
-    random_state: int
-        The random state to use for the negative data.
+    negative_frac: float, optional
+        The fraction of negative data to use, by default 0.5.
+    random_state: int, optional
+        The random state to use for the negative data, by default None.
+    train_frac: int, optional
+        The fraction of the training data to use, by default 1.
     """
     # If the device is not specified, use cuda if available
     if device is None:
@@ -143,10 +145,9 @@ def train(model_name: str, granularity: int, device: str | None = None, negative
     data[f'type_{GRANULARITY}'] = data['full_type'].apply(lambda x: get_type(x, GRANULARITY))
     dev_data[f'type_{GRANULARITY}'] = dev_data['full_type'].apply(lambda x: get_type(x, GRANULARITY))
 
-    # Remove the rows with type None or "other"
+    # Remove the rows with type None
     data = data[data[f'type_{GRANULARITY}'].notna()]
     dev_data = dev_data[dev_data[f'type_{GRANULARITY}'].notna()]
-    # data = data[data[f'type_{GRANULARITY}'] != 'other']
 
     # Remove duplicates
     data = data.drop_duplicates(subset=['mention_span', 'sentence', f'type_{GRANULARITY}'])
@@ -160,8 +161,8 @@ def train(model_name: str, granularity: int, device: str | None = None, negative
         input_text = [combine_premise_hypothesis(sentence, hypothesis) for sentence, hypothesis in zip(examples["sentence"], examples["hypothesis"])]
         return tokenizer(input_text, max_length=model.config.max_position_embeddings, padding="max_length", return_tensors="pt")
 
-    # Shuffle and tokenize the data
-    data = data.sample(frac=1, random_state=random_state).reset_index(drop=True)
+    # Shuffle, sample, and tokenize the data
+    data = data.sample(frac=train_frac, random_state=random_state).reset_index(drop=True)
     train_dataset = Dataset.from_pandas(data.loc[:, ["sentence", "hypothesis", "label"]])
     tokenized_train_dataset = train_dataset.map(tokenize_function, batched=True)
 
@@ -171,7 +172,7 @@ def train(model_name: str, granularity: int, device: str | None = None, negative
 
     # Create an instance of the callback
     callback_steps = generate_log_callback_steps(len(tokenized_train_dataset))
-    print(f'Number of callbacks: {len(callback_steps)}')
+    print(f'Callback Steps: {callback_steps}')
 
     # Get the types at the specified granularity
     all_types = get_all_types(granularity=granularity)

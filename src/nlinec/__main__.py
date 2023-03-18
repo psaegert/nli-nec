@@ -20,6 +20,7 @@ def main() -> None:
     train_parser.add_argument('-d', '--device', type=str, default=None, choices=['cuda', 'cpu'])
     train_parser.add_argument('-n', '--negative-frac', type=float, default=0.5)
     train_parser.add_argument('-r', '--random-state', type=int, default=None)
+    train_parser.add_argument('-t', '--train-frac', type=float, default=None)
 
     # Parse the arguments
     args = parser.parse_args()
@@ -34,6 +35,7 @@ def main() -> None:
                 granularity=args.granularity,
                 device=args.device,
                 negative_frac=args.negative_frac,
-                random_state=args.random_state)
+                random_state=args.random_state,
+                train_frac=args.train_frac)
         case None:
             parser.print_help()
