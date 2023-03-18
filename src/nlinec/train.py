@@ -12,12 +12,8 @@ from .data.preprocessing import combine_premise_hypothesis, construct_hypothesis
 from .predict import predict_type
 from .utils import get_models_dir
 
-GRANULARITY = 2
-DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-OUTPUT_DIR = os.path.join(get_models_dir(), f'nlinec-{GRANULARITY}')
 
-
-def compute_accuracy(model: PreTrainedModel, tokenizer: PreTrainedTokenizer, data: pd.DataFrame, types: list) -> float:
+def compute_accuracy(model: PreTrainedModel, tokenizer: PreTrainedTokenizer, data: pd.DataFrame, types: list, granularity: int) -> float:
     """
     Compute the accuracy on the data.
 
@@ -31,6 +27,8 @@ def compute_accuracy(model: PreTrainedModel, tokenizer: PreTrainedTokenizer, dat
         The data to predict on.
     types: list
         The list of types to choose from.
+    granularity: int, {1, 2, 3}
+        The granularity of the types to compute the accuracy on.
 
     Returns
     -------
@@ -39,7 +37,7 @@ def compute_accuracy(model: PreTrainedModel, tokenizer: PreTrainedTokenizer, dat
     """
     with torch.no_grad():
         predictions = predict_type(model, tokenizer, list(data['sentence']), list(data['mention_span']), types, return_str=True, verbose=True)
-    return (data[f'type_{GRANULARITY}'] == predictions).mean()
+    return (data[f'type_{granularity}'] == predictions).mean()
 
 
 def generate_log_callback_steps(max_step: float) -> set:
@@ -56,9 +54,11 @@ class AccuracyCallback(TrainerCallback):
     """
     A callback to compute the accuracy on the dev set during training and save it to a json file.
     """
-    def __init__(self, dev_data: pd.DataFrame, types: list, model: PreTrainedModel, tokenizer: PreTrainedTokenizer, steps: list[int] | set[int] | None = None):
+    def __init__(self, dev_data: pd.DataFrame, types: list, model: PreTrainedModel, tokenizer: PreTrainedTokenizer, output_dir: str, granularity: int, steps: list[int] | set[int] | None = None):
         self.model = model
         self.tokenizer = tokenizer
+        self.output_dir = output_dir
+        self.granularity = granularity
 
         self.dev_data = dev_data
         self.types = types
@@ -69,7 +69,7 @@ class AccuracyCallback(TrainerCallback):
     def on_step_end(self, args: TrainingArguments, state: TrainerState, control: TrainerControl, **kwargs: dict) -> None:
         if state.global_step in self.steps or state.global_step == state.max_steps:
             # Compute the dev accuracy with the current model
-            accuracy = compute_accuracy(self.model, self.tokenizer, self.dev_data, self.types)
+            accuracy = compute_accuracy(self.model, self.tokenizer, self.dev_data, self.types, self.granularity)
             loss = state.log_history[-1]['loss'] if len(state.log_history) > 0 else -1
 
             print(f"Accuracy: {accuracy:.4f} Loss: {loss:.4f} Step: {state.global_step}")
@@ -79,12 +79,12 @@ class AccuracyCallback(TrainerCallback):
 
             # Save the accuracy
             print('Saving the accuracy')
-            with open(os.path.join(OUTPUT_DIR, "accuracy.json"), "w") as f:
+            with open(os.path.join(self.output_dir, "accuracy.json"), "w") as f:
                 json.dump(self.accuracy, f)
 
             # Save the loss
             print('Saving the loss')
-            with open(os.path.join(OUTPUT_DIR, "loss.json"), "w") as f:
+            with open(os.path.join(self.output_dir, "loss.json"), "w") as f:
                 json.dump(state.log_history, f)
 
 
@@ -116,7 +116,7 @@ def train(model_name: str, granularity: int, device: str | None = None, negative
 
     # Load the pre-trained model and tokenizer for the roberta-large-mnli model
     tokenizer = AutoTokenizer.from_pretrained("roberta-large-mnli")
-    model = AutoModelForSequenceClassification.from_pretrained("roberta-large-mnli").to(DEVICE)
+    model = AutoModelForSequenceClassification.from_pretrained("roberta-large-mnli").to(device)
 
     # Get the path to save the model
     output_dir = os.path.join(get_models_dir(), model_name)
@@ -142,20 +142,20 @@ def train(model_name: str, granularity: int, device: str | None = None, negative
     # --- Preprocessing ---
 
     # Add the basic type
-    data[f'type_{GRANULARITY}'] = data['full_type'].apply(lambda x: get_type(x, GRANULARITY))
-    dev_data[f'type_{GRANULARITY}'] = dev_data['full_type'].apply(lambda x: get_type(x, GRANULARITY))
+    data[f'type_{granularity}'] = data['full_type'].apply(lambda x: get_type(x, granularity))
+    dev_data[f'type_{granularity}'] = dev_data['full_type'].apply(lambda x: get_type(x, granularity))
 
     # Remove the rows with type None
-    data = data[data[f'type_{GRANULARITY}'].notna()]
-    dev_data = dev_data[dev_data[f'type_{GRANULARITY}'].notna()]
+    data = data[data[f'type_{granularity}'].notna()]
+    dev_data = dev_data[dev_data[f'type_{granularity}'].notna()]
 
     # Remove duplicates
-    data = data.drop_duplicates(subset=['mention_span', 'sentence', f'type_{GRANULARITY}'])
-    dev_data = dev_data.drop_duplicates(subset=['mention_span', 'sentence', f'type_{GRANULARITY}'])
+    data = data.drop_duplicates(subset=['mention_span', 'sentence', f'type_{granularity}'])
+    dev_data = dev_data.drop_duplicates(subset=['mention_span', 'sentence', f'type_{granularity}'])
 
     # Construct the hypothesis
-    data["hypothesis"] = data.apply(lambda row: construct_hypothesis(row["mention_span"], row[f'type_{GRANULARITY}']), axis=1)
-    dev_data["hypothesis"] = dev_data.apply(lambda row: construct_hypothesis(row["mention_span"], row[f'type_{GRANULARITY}']), axis=1)
+    data["hypothesis"] = data.apply(lambda row: construct_hypothesis(row["mention_span"], row[f'type_{granularity}']), axis=1)
+    dev_data["hypothesis"] = dev_data.apply(lambda row: construct_hypothesis(row["mention_span"], row[f'type_{granularity}']), axis=1)
 
     def tokenize_function(examples: dict) -> dict:
         input_text = [combine_premise_hypothesis(sentence, hypothesis) for sentence, hypothesis in zip(examples["sentence"], examples["hypothesis"])]
@@ -171,8 +171,8 @@ def train(model_name: str, granularity: int, device: str | None = None, negative
     # --- Setup ---
 
     # Create an instance of the callback
-    callback_steps = generate_log_callback_steps(len(tokenized_train_dataset))
-    print(f'Callback Steps: {callback_steps}')
+    callback_steps = generate_log_callback_steps(len(tokenized_train_dataset) // (8 * 8))  # 8 is the batch size, 8 is the number of gradient accumulation steps
+    print(f'Callback Steps: {sorted(list(callback_steps))}')
 
     # Get the types at the specified granularity
     all_types = get_all_types(granularity=granularity)
@@ -180,7 +180,14 @@ def train(model_name: str, granularity: int, device: str | None = None, negative
     gran_types = all_types[all_types['granularity'] == granularity]
 
     # Create an instance of the callback
-    accuracy_callback = AccuracyCallback(dev_data, list(gran_types[1]['type']), model, tokenizer, steps=callback_steps)
+    accuracy_callback = AccuracyCallback(
+        dev_data,
+        list(gran_types['type']),
+        model,
+        tokenizer,
+        output_dir=output_dir,
+        granularity=granularity,
+        steps=callback_steps)
 
     # Define the training arguments
     training_args = TrainingArguments(
@@ -193,16 +200,14 @@ def train(model_name: str, granularity: int, device: str | None = None, negative
         save_steps=1e10,
         logging_steps=1,
         gradient_accumulation_steps=8,
-        evaluation_strategy='no',
-    )
+        evaluation_strategy='no')
 
     # Create an instance of the trainer
     trainer = Trainer(
         model=model,
         args=training_args,
         train_dataset=tokenized_train_dataset,
-        callbacks=[accuracy_callback],
-    )
+        callbacks=[accuracy_callback])
 
     # --- /Setup ---
 
