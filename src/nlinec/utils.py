@@ -115,7 +115,7 @@ def gpartconv1d(data: np.ndarray, sigma: float, window_size: int = None) -> np.n
     sigma : float
         Standard deviation of the gaussian kernel.
     window_size : int, optional
-        Size of the window. The default is None.
+        Size of the window. The default is `min(int(sigma * 3.5), (len(data) - 1) // 2)`.
 
     Returns
     -------

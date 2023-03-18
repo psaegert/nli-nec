@@ -12,7 +12,7 @@ from nlinec.predict import predict_type
 
 GRANULARITY = 2
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-OUTPUT_DIR = os.path.join(get_models_dir(), f'nlinec-{GRANULARITY}-logging')
+OUTPUT_DIR = os.path.join(get_models_dir(), f'nlinec-{GRANULARITY}')
 
 
 positive_data = get_positive_data("augmented_train.json", explode=True)
@@ -72,15 +72,14 @@ class AccuracyCallback(TrainerCallback):
         self.types = types
 
         self.accuracy: dict = {}
-
         self.steps = steps if steps is not None else []
 
     def on_step_end(self, args: TrainingArguments, state: TrainerState, control: TrainerControl, **kwargs: dict) -> None:
         if state.global_step in self.steps or state.global_step == state.max_steps:
             # Compute the dev accuracy with the current model
             accuracy = compute_dev_accuracy(self.model, self.tokenizer, self.dev_data, self.types)
-
             loss = state.log_history[-1]['loss'] if len(state.log_history) > 0 else -1
+
             print(f"Accuracy: {accuracy:.4f} Loss: {loss:.4f} Step: {state.global_step}")
 
             # Save the accuracy
@@ -118,14 +117,14 @@ accuracy_callback = AccuracyCallback(dev_data, list(gran_types[1]['type']), mode
 
 training_args = TrainingArguments(
     output_dir=OUTPUT_DIR,
-    learning_rate=1e-5,
+    learning_rate=3e-6,
     num_train_epochs=1,
     per_device_train_batch_size=8,
     warmup_steps=500,
     logging_dir='./logs',
     save_steps=1e10,
     logging_steps=1,
-    gradient_accumulation_steps=4,
+    gradient_accumulation_steps=8,
     evaluation_strategy='no',
 
 )
