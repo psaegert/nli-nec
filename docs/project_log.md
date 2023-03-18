@@ -177,3 +177,4 @@ Integrate train routine into package and make it accessible via the command line
 Train `nlinec-D-2` model on 10% of the data.
 Predict dev and test predictions with `nlinec-C-2` and `nlinec-D-2`, and validate the models.
 Add insights to the [diagram](assets/model-tree-rationalepng.png).
+Train `nlinec-D-1` and `nlinec-D-3` models and predict dev and test predictions.

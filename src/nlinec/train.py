@@ -162,7 +162,10 @@ def train(model_name: str, granularity: int, device: str | None = None, negative
         return tokenizer(input_text, max_length=model.config.max_position_embeddings, padding="max_length", return_tensors="pt")
 
     # Shuffle, sample, and tokenize the data
-    data = data.sample(frac=train_frac, random_state=random_state).reset_index(drop=True)
+    if train_frac > 1:
+        data = data.sample(n=int(train_frac), random_state=random_state).reset_index(drop=True)
+    else:
+        data = data.sample(frac=train_frac, random_state=random_state).reset_index(drop=True)
     train_dataset = Dataset.from_pandas(data.loc[:, ["sentence", "hypothesis", "label"]])
     tokenized_train_dataset = train_dataset.map(tokenize_function, batched=True)
 
