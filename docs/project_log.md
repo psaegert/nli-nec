@@ -145,10 +145,36 @@ Revise Hypothesis-Only bias analysis and compare the accuracy of the hypothesis-
 Update the [diagram](assets/project_plan_2023-03-15.png) to reflect the current status of the tasks and add a card for the interpretation with ferret.
 
 ---
-2023-03-16
+
+#### 2023-03-16
 *Paul*
 <br>
-Train the `nlinec-positive-2` model on only the positive data and medium granularity.
-Begin training the `nlinec-2` model on the combined data and medium granularity.
+Train the `nlinec-A-2` model on only the positive data and medium granularity (later repeated in `nlinec-E-2` with better training parameters).
+Begin training the `nlinec-A-2` model on the combined data and medium (2) granularity.
 Discover increasing training loss and poor quality predictions, and stop the training early.
 Reformulate plan to monitor the training loss and nec accuracy in frequent intervals during training.
+
+---
+
+#### 2023-03-17
+*Paul*
+<br>
+Ajdust training parameters (remove weight decay, lower learning rate to 1e-5, add logging.)
+Train the new `nlinec-B-2` model on the combined data and medium granularity.
+Fix bug where the logging of the training loss and dev accuracy were not saved after training.
+Predict the types of the test set with the `nlinec-B-2` model and verify that the fine-tuning was successful.
+Create analysis notebook for training loss and dev accuracy during training.
+Notice plateau in performance after 10% of the training and plan lowering the learning rate to 1e-6 for a second test run.
+
+---
+
+#### 2023-03-18
+*Paul*
+<br>
+Further reduce the learning rate and train the `nlinec-C-2` model while logging the training loss and dev accuracy over time.
+Create [diagram](assets/model-tree-rationalepng.png) to explain the rationale behind model variants and the development process.
+Integrate train routine into package and make it accessible via the command line with key parameters.
+Train `nlinec-D-2` model on 10% of the data.
+Predict dev and test predictions with `nlinec-C-2` and `nlinec-D-2`, and validate the models.
+Add insights to the [diagram](assets/model-tree-rationalepng.png).
+Train `nlinec-D-1` and `nlinec-D-3` models and predict dev and test predictions.

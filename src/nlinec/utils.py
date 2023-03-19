@@ -1,5 +1,7 @@
 import os
 
+import numpy as np
+
 
 def get_data_dir() -> str:
     """
@@ -100,3 +102,43 @@ def color_palette(key: str | None = None) -> str | dict:
         return colors
 
     return colors[key]
+
+
+def gpartconv1d(data: np.ndarray, sigma: float, window_size: int = None) -> np.ndarray:
+    '''
+    Convolve data with a gaussian kernel and the edges with a truncated gaussian kernel.
+
+    Parameters
+    ----------
+    data : np.ndarray
+        Data to be convolved.
+    sigma : float
+        Standard deviation of the gaussian kernel.
+    window_size : int, optional
+        Size of the window. The default is `min(int(sigma * 3.5), (len(data) - 1) // 2)`.
+
+    Returns
+    -------
+    np.ndarray
+        Convolved data.
+    '''
+    if window_size is None:
+        window_size = min(int(sigma * 3.5), (len(data) - 1) // 2)
+
+    # Create the gaussian kernel
+    kernel = np.exp(-np.arange(-window_size, window_size + 1)**2 / (2 * sigma**2))
+
+    # Convolve the middle section of the data with the kernel, i.e. where the data and the kernel overlap completely
+    data_convolved_middle = np.convolve(data, kernel / kernel.sum(), mode='valid')
+
+    # Convolve the edges of the data with the kernel, i.e. where the data and the kernel overlap partially
+    data_convolved_left = np.empty(2 * window_size - 1)
+    data_convolved_right = np.empty(2 * window_size - 1)
+    for i in range(1, 2 * window_size):
+        data_convolved_left[i - 1] = data[:i] @ kernel[-i:] / kernel[-i:].sum()
+        data_convolved_right[i - 1] = data[-2 * window_size + i:] @ kernel[:2 * window_size - i] / kernel[:2 * window_size - i].sum()
+
+    # Convolve the data with the kernel
+    data_convolved = np.concatenate((data_convolved_left[window_size - 1:], data_convolved_middle, data_convolved_right[:window_size]))
+
+    return data_convolved

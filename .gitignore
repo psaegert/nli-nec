@@ -17,4 +17,5 @@
 results/**/*train*.csv
 
 # Models
-models/
+models/*/checkpoint*
+models/**/*.bin
