@@ -1,5 +1,5 @@
 [project]
-name = "mnlinec"
+name = "nlinec"
 description = "Named Entity Classification through Natural Language Inference with Transformers"
 authors = [
     {name = "Paul Saegert"},
