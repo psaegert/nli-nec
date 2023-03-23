@@ -108,6 +108,7 @@ def get_positive_data(filename: str, explode: bool = False) -> pd.DataFrame:
     # Add the 'label' column
     labels = get_labels()
     df['label'] = labels['ENTAILMENT']
+    df['label'] = df['label'].astype(int)
 
     return df
 
