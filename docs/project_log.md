@@ -178,3 +178,19 @@ Train `nlinec-D-2` model on 10% of the data.
 Predict dev and test predictions with `nlinec-C-2` and `nlinec-D-2`, and validate the models.
 Add insights to the [diagram](assets/model-tree-rationalepng.png).
 Train `nlinec-D-1` and `nlinec-D-3` models and predict dev and test predictions.
+
+---
+
+#### 2023-03-23
+*Paul*
+<br>
+Analyze the predictions of `roberta-large-mnli` and `nlinec-D-2` with ferret.
+
+---
+
+#### 2023-03-24
+*Paul*
+<br>
+Compare the type accuracy with the type frequency in the training data.
+Compose 'Model & Data' section in the project report.
+Create figures for the 'Model & Data' section.
