@@ -127,7 +127,7 @@ def train(model_name: str, granularity: int, device: str | None = None, negative
 
     # Combine the positive and negative data of the combination fraction is not 0
     if negative_frac != 0:
-        data = combine_positive_negative_data(positive_data, negative_data, frac=0.5, random_state=random_state)
+        data = combine_positive_negative_data(positive_data, negative_data, frac=negative_frac, random_state=random_state)
     else:
         data = positive_data
 
