@@ -194,3 +194,15 @@ Analyze the predictions of `roberta-large-mnli` and `nlinec-D-2` with ferret.
 Compare the type accuracy with the type frequency in the training data.
 Compose 'Model & Data' section in the project report.
 Create figures for the 'Model & Data' section.
+
+---
+
+#### 2023-03-25
+Compose Abstract and Methods sections in the project report.
+Add figures to the Results and Experiments sections.
+
+---
+
+#### 2023-03-26
+Compose Introduction section in the project report.
+Add visual abstract and model tree to the project report.
