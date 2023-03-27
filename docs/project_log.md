@@ -198,11 +198,22 @@ Create figures for the 'Model & Data' section.
 ---
 
 #### 2023-03-25
+*Paul*
+<br>
 Compose Abstract and Methods sections in the project report.
 Add figures to the Results and Experiments sections.
 
 ---
 
 #### 2023-03-26
+*Paul*
+<br>
 Compose Introduction section in the project report.
 Add visual abstract and model tree to the project report.
+
+---
+
+#### 2023-03-27
+*Paul*
+<br>
+Compose Experiments and Results sections in the project report.
