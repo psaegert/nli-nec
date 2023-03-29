@@ -31,7 +31,7 @@ The models are fine-tuned on the augmented OntoNotes from the [Ultra-Fine Entity
 | [nlinec-D-fine](https://huggingface.co/psaegert/nlinec-D-fine) | NLI+NEC-fine-tuned on 10% NEC data @ fine granularity |
 | [nlinec-E-medium](https://huggingface.co/psaegert/nlinec-E-medium) | NLI+NEC-fine-tuned on positive-only 10% NEC data @ medium granularity |
 
-A detailed description of the models and their rationale can be found in the [model rationale diagram](docs/assets/model-tree-rationale.png)
+A detailed description of the models and their rationale can be found in the [model rationale diagram](docs/assets/model-tree-rationale.png).
 
 # Results
 The Maximum Entailment Accuracy at each granularity and the Multi-NLI Accuracy of the models are shown in the table below.
