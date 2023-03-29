@@ -159,7 +159,6 @@ def train(model_name: str, granularity: int, device: str | None = None, negative
     data = data.drop_duplicates(subset=['mention_span', 'sentence', f'type_{granularity}'])
     dev_data = dev_data.drop_duplicates(subset=['mention_span', 'sentence', f'type_{granularity}'])
     print(f"Removed {len_data_before - len(data)} ({(len_data_before - len(data)) / len_data_before * 100:.2f}%) duplicate rows")
-    exit()
 
     # Construct the hypothesis
     data["hypothesis"] = data.apply(lambda row: construct_hypothesis(row["mention_span"], row[f'type_{granularity}']), axis=1)
