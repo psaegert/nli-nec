@@ -8,7 +8,7 @@
 
 </div>
 
-<img src="images/visual_abstract.png" alt="Visual Abstract" width="70%" style="display: block; margin-left: auto; margin-right: auto;"/>
+![Visual Abstract](images/visual_abstract.png)
 
 # Introduction
 In this work, I use the [`roberta-large-mnli`](https://huggingface.co/roberta-large-mnli) model to perform zero-shot and fine-tuned Named Entity Classification (NEC) at varying type granularity by reformulating the NEC task as a Natural Language Inference (NLI) task. To query the type of an entity in a sentence, the following pattern is used:
