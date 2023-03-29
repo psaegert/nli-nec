@@ -122,17 +122,22 @@ def train(model_name: str, granularity: int, device: str | None = None, negative
     output_dir = os.path.join(get_models_dir(), model_name)
 
     # Load the data
+    print("Loading positive data")
     positive_data = get_positive_data("augmented_train.json", explode=True)
-    negative_data = get_negative_data("augmented_train.json", random_state=random_state)
 
     # Combine the positive and negative data of the combination fraction is not 0
     if negative_frac != 0:
+        print("Loading negative data")
+        negative_data = get_negative_data("augmented_train.json", random_state=random_state)
         data = combine_positive_negative_data(positive_data, negative_data, frac=negative_frac, random_state=random_state)
+
+        # Remove the original data to save memory
+        del negative_data
     else:
         data = positive_data
 
     # Remove the original data to save memory
-    del positive_data, negative_data
+    del positive_data
 
     # Load the dev data for validation and accuracy logging during training
     dev_data = get_positive_data("g_dev.json", explode=True)

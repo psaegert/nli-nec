@@ -169,6 +169,7 @@ def get_ambiguity_index(filename: str = 'augmented_train.json') -> dict:
             ambiguity_index = json.load(f)
     else:
         # Load the training data
+        print("Loading positive data to build the ambiguity index...")
         data = get_positive_data('augmented_train.json', explode=True)
 
         # Find the most ambiguous entities
@@ -260,11 +261,13 @@ def get_negative_data(positive_file: str = 'augmented_train.json', random_state:
         negative_data = pd.read_csv(negative_file)
     else:
         print(f'Generating negative data from {positive_file}...')
-        data = get_positive_data(positive_file, explode=True)
         ambiguity_index = get_ambiguity_index(positive_file)
 
         if random_state is not None:
             np.random.seed(random_state)
+
+        print('Loading positive data for transformation...')
+        data = get_positive_data(positive_file, explode=True)
 
         negative_data = data.copy()
         pbar = tqdm(range(0, len(negative_data), step), total=len(negative_data), desc='Sampling negative data')

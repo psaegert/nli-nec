@@ -78,11 +78,11 @@ nlinec download-data
 Fine-tune the `roberta-large-mnli` model on the NEC data with the following commands:
 | Model | Command |
 | --- | --- |
-| [nlinec-C-medium](https://huggingface.co/psaegert/nlinec-C-medium) | `nlinec train my-nlinec-C-medium -g 2 -r 42` |
-| [nlinec-D-coarse](https://huggingface.co/psaegert/nlinec-D-coarse) | `nlinec train my-nlinec-D-coarse -g 1 -r 42 -t 81408` |
-| [nlinec-D-medium](https://huggingface.co/psaegert/nlinec-D-medium) | `nlinec train my-nlinec-D-medium -g 2 -r 42 -t 81408` |
-| [nlinec-D-fine](https://huggingface.co/psaegert/nlinec-D-fine) | `nlinec train my-nlinec-D-fine -g 3 -r 42 -t 81408` |
-| [nlinec-E-medium](https://huggingface.co/psaegert/nlinec-E-medium) | `nlinec train my-nlinec-E-medium -g 2 -r 42 -t 81408 -n 0` |
+| [nlinec-C-medium](https://huggingface.co/psaegert/nlinec-C-medium) | `nlinec train -m my-nlinec-C-medium -g 2 -r 42` |
+| [nlinec-D-coarse](https://huggingface.co/psaegert/nlinec-D-coarse) | `nlinec train -m my-nlinec-D-coarse -g 1 -r 42 -t 81408` |
+| [nlinec-D-medium](https://huggingface.co/psaegert/nlinec-D-medium) | `nlinec train -m my-nlinec-D-medium -g 2 -r 42 -t 81408` |
+| [nlinec-D-fine](https://huggingface.co/psaegert/nlinec-D-fine) | `nlinec train -m my-nlinec-D-fine -g 3 -r 42 -t 81408` |
+| [nlinec-E-medium](https://huggingface.co/psaegert/nlinec-E-medium) | `nlinec train -m my-nlinec-E-medium -g 2 -r 42 -t 81408 -n 0` |
 
 ### Predict the types
 To predict the types of the entities in the test set, please execute the [prediction notebook](notebooks/predict.ipynb).
