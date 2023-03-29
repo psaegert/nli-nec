@@ -97,6 +97,11 @@ I use
 - [isort](https://pypi.org/project/isort/) to enforce import sorting
 - [pytest](https://pypi.org/project/pytest/) to run tests against our code (see `tests/`)
 
+To install the development dependencies, run the following command:
+```bash
+pip install -r requirements_dev.txt
+```
+
 To set up the pre-commit hooks, run the following command:
 ```bash
 pre-commit install
