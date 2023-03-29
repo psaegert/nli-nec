@@ -217,3 +217,18 @@ Add visual abstract and model tree to the project report.
 *Paul*
 <br>
 Compose Experiments and Results sections in the project report.
+
+---
+
+#### 2023-03-28
+*Paul*
+<br>
+Compose Results and Discussion sections in the project report.
+Add Hypernym Correlations to the appendix.
+
+---
+
+#### 2023-03-29
+*Paul*
+<br>
+Improve code documentation in the notebooks and add content to the README (#22).
